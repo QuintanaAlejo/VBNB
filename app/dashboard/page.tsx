@@ -19,7 +19,7 @@ export default async function DashboardPage() {
     redirect("/auth/login")
   }
 
-  // Obtener perfil del usuario
+  // Obtener perfil del usuario actual
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("*")
