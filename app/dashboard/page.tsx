@@ -107,7 +107,7 @@ export default async function DashboardPage() {
                 <CreditCard className="h-5 w-5 text-muted-foreground" />
                 <CardTitle className="text-muted-foreground">Pagos</CardTitle>
               </div>
-              <CardDescription>Disponible en próximos sprint</CardDescription>
+              <CardDescription>Disponible proximamente!</CardDescription>
             </CardHeader>
             <CardContent>
               <Button disabled className="w-full bg-transparent" variant="outline">
