@@ -48,6 +48,9 @@ export default async function DashboardPage() {
             <h1 className="text-2xl font-bold">VBNB Seguros</h1>
           </div>
           <div className="flex items-center gap-4">
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/admin/users">Panel Admin</Link>
+            </Button>
             <span className="text-sm text-muted-foreground">
               {profile?.first_name} {profile?.last_name}
             </span>
