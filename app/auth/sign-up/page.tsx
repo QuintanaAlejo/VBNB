@@ -60,24 +60,49 @@ export default function SignUpPage() {
       const supabase = createClient()
 
       console.log("[v0] Iniciando registro de usuario...")
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            first_name: formData.first_name,
-            last_name: formData.last_name,
-          },
-        },
-      })
 
-      if (authError) throw authError
+      let authData, authError
+      try {
+        const response = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              first_name: formData.first_name,
+              last_name: formData.last_name,
+            },
+          },
+        })
+        authData = response.data
+        authError = response.error
+      } catch (fetchError) {
+        console.error("[v0] Error de conexión con Supabase:", fetchError)
+        throw new Error(
+          "No se puede conectar con Supabase. Posibles causas:\n\n" +
+            "1. El proyecto de Supabase está PAUSADO (muy común en proyectos gratuitos)\n" +
+            "   → Ve a https://supabase.com/dashboard y reactiva tu proyecto\n\n" +
+            "2. Las credenciales de Supabase son incorrectas\n" +
+            "   → Verifica SUPABASE_URL y SUPABASE_ANON_KEY en las variables de entorno\n\n" +
+            "3. Problema de red o CORS\n" +
+            "   → Verifica tu conexión a internet",
+        )
+      }
+
+      if (authError) {
+        if (authError.message.includes("User already registered")) {
+          throw new Error("Este email ya está registrado. Intenta iniciar sesión.")
+        }
+        throw authError
+      }
 
       if (!authData.user) {
         throw new Error("No se pudo crear el usuario")
       }
 
+      console.log("[v0] Usuario creado, verificando sesión...")
+
       if (!authData.session) {
+        console.log("[v0] No hay sesión activa - confirmación de email requerida")
         setError(
           "Para usar esta demo, debes deshabilitar la confirmación de email en Supabase. Ve a Authentication > Providers > Email y desactiva 'Confirm email'.",
         )
@@ -87,21 +112,26 @@ export default function SignUpPage() {
 
       console.log("[v0] Usuario creado con sesión activa, creando perfil...")
 
-      const { error: profileError } = await supabase.rpc("create_profile", {
-        user_id: authData.user.id,
-        p_first_name: formData.first_name,
-        p_last_name: formData.last_name,
-        p_document_type: formData.document_type,
-        p_document_number: formData.document_number,
-        p_birth_date: formData.birth_date,
-        p_phone: formData.phone,
-        p_address: formData.address,
-        p_city: formData.city,
-        p_province: formData.province,
-        p_postal_code: formData.postal_code,
-      })
+      try {
+        const { error: profileError } = await supabase.rpc("create_profile", {
+          user_id: authData.user.id,
+          p_first_name: formData.first_name,
+          p_last_name: formData.last_name,
+          p_document_type: formData.document_type,
+          p_document_number: formData.document_number,
+          p_birth_date: formData.birth_date,
+          p_phone: formData.phone,
+          p_address: formData.address,
+          p_city: formData.city,
+          p_province: formData.province,
+          p_postal_code: formData.postal_code,
+        })
 
-      if (profileError) throw profileError
+        if (profileError) throw profileError
+      } catch (profileError) {
+        console.error("[v0] Error al crear perfil:", profileError)
+        throw new Error("Usuario creado pero hubo un error al crear el perfil. Intenta iniciar sesión.")
+      }
 
       console.log("[v0] Perfil creado exitosamente, redirigiendo al dashboard...")
 
