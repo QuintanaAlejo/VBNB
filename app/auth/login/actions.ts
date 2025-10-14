@@ -82,8 +82,6 @@ export async function loginAction(formData: FormData) {
 
       console.log("[v0] Login exitoso, redirigiendo al dashboard...")
     }
-
-    redirect("/dashboard")
   } catch (error: unknown) {
     console.error("[v0] Error capturado en login:", error)
 
@@ -117,4 +115,6 @@ export async function loginAction(formData: FormData) {
 
     return { error: "Error de conexión. Por favor intentá nuevamente." }
   }
+
+  redirect("/dashboard")
 }
