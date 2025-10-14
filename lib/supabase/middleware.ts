@@ -25,12 +25,24 @@ export async function updateSession(request: NextRequest) {
     },
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-  // Redirigir a login si no está autenticado y no está en rutas públicas
-  if (!user && !request.nextUrl.pathname.startsWith("/auth") && request.nextUrl.pathname !== "/") {
+    // Redirigir a login si no está autenticado y no está en rutas públicas
+    if (!user && !request.nextUrl.pathname.startsWith("/auth") && request.nextUrl.pathname !== "/") {
+      const url = request.nextUrl.clone()
+      url.pathname = "/auth/login"
+      return NextResponse.redirect(url)
+    }
+  } catch (error) {
+    console.error("[v0] Error en middleware al obtener usuario:", error)
+    // Si hay error de conexión, permitir acceso a rutas públicas
+    if (request.nextUrl.pathname.startsWith("/auth") || request.nextUrl.pathname === "/") {
+      return supabaseResponse
+    }
+    // Para rutas protegidas, redirigir a login
     const url = request.nextUrl.clone()
     url.pathname = "/auth/login"
     return NextResponse.redirect(url)

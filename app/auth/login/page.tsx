@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Shield } from "lucide-react"
+import { Shield, AlertCircle } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
@@ -61,9 +62,10 @@ export default function LoginPage() {
               </div>
 
               {error && (
-                <div className="p-3 bg-destructive/10 border border-destructive rounded-md">
-                  <p className="text-sm text-destructive">{error}</p>
-                </div>
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="whitespace-pre-line">{error}</AlertDescription>
+                </Alert>
               )}
 
               <Button type="submit" className="w-full" disabled={isLoading}>
