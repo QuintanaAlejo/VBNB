@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Shield, User, FileText, CreditCard } from "lucide-react"
+import { Shield, User, FileText, CreditCard, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import type { Profile } from "@/types/profile"
 import { signOut } from "@/app/auth/sign-out/actions"
@@ -117,6 +117,22 @@ export default async function DashboardPage() {
             <CardContent>
               <Button disabled className="w-full bg-transparent" variant="outline">
                 Ver Pagos
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Siniestros */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-primary" />
+                <CardTitle>Siniestros</CardTitle>
+              </div>
+              <CardDescription>Reportá y gestioná tus siniestros</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild className="w-full">
+                <Link href="/dashboard/claims">Ver Siniestros</Link>
               </Button>
             </CardContent>
           </Card>
