@@ -17,8 +17,7 @@ export default async function EditUserPage({ params }: { params: { id: string } 
   }
 
   // Obtener email del usuario
-  const { data: authUser } = await supabase.auth.admin.getUserById(params.id)
-  const email = authUser?.user?.email || ""
+  const email = profile.email || ""
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
