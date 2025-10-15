@@ -1,5 +1,6 @@
 export interface Profile {
   id: string
+  email?: string
   first_name: string
   last_name: string
   document_type: "DNI" | "CUIT" | "CUIL" | "Pasaporte"

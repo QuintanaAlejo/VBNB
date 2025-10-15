@@ -9,11 +9,7 @@ import { deleteUser } from "@/app/admin/users/actions"
 import { useState } from "react"
 import type { Profile } from "@/types/profile"
 
-interface UserWithEmail extends Profile {
-  email: string
-}
-
-export function UserTable({ users }: { users: UserWithEmail[] }) {
+export function UserTable({ users }: { users: Profile[] }) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const handleDelete = async (userId: string, userName: string) => {
@@ -66,7 +62,7 @@ export function UserTable({ users }: { users: UserWithEmail[] }) {
                 <TableCell className="font-medium">
                   {user.first_name} {user.last_name}
                 </TableCell>
-                <TableCell>{user.email}</TableCell>
+                <TableCell>{user.email || "N/A"}</TableCell>
                 <TableCell>
                   {user.document_type} {user.document_number}
                 </TableCell>

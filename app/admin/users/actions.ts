@@ -21,11 +21,15 @@ export async function createUser(formData: FormData) {
   const postal_code = formData.get("postal_code") as string
   const user_type = formData.get("user_type") as Profile["user_type"]
 
-  // Crear usuario en auth
-  const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+  const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
-    email_confirm: true, // Auto-confirmar el email
+    options: {
+      data: {
+        first_name,
+        last_name,
+      },
+    },
   })
 
   if (authError) {
@@ -37,22 +41,20 @@ export async function createUser(formData: FormData) {
     return { error: "No se pudo crear el usuario" }
   }
 
-  // Crear perfil usando la función RPC
   const { error: profileError } = await supabase.rpc("create_profile", {
     user_id: authData.user.id,
-    profile_data: {
-      first_name,
-      last_name,
-      document_type,
-      document_number,
-      birth_date,
-      phone,
-      address,
-      city,
-      province,
-      postal_code,
-      user_type,
-    },
+    p_email: email,
+    p_first_name: first_name,
+    p_last_name: last_name,
+    p_document_type: document_type,
+    p_document_number: document_number,
+    p_birth_date: birth_date,
+    p_phone: phone,
+    p_address: address,
+    p_city: city,
+    p_province: province,
+    p_postal_code: postal_code,
+    p_user_type: user_type,
   })
 
   if (profileError) {
@@ -95,20 +97,11 @@ export async function updateUser(userId: string, formData: FormData) {
 export async function deleteUser(userId: string) {
   const supabase = await createClient()
 
-  // Primero eliminar el perfil
   const { error: profileError } = await supabase.from("profiles").delete().eq("id", userId)
 
   if (profileError) {
     console.error("[v0] Error al eliminar perfil:", profileError)
     return { error: profileError.message }
-  }
-
-  // Luego eliminar el usuario de auth
-  const { error: authError } = await supabase.auth.admin.deleteUser(userId)
-
-  if (authError) {
-    console.error("[v0] Error al eliminar usuario de auth:", authError)
-    return { error: authError.message }
   }
 
   revalidatePath("/admin/users")

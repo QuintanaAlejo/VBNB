@@ -18,17 +18,6 @@ export default async function AdminUsersPage() {
     console.error("[v0] Error al obtener usuarios:", error)
   }
 
-  // Obtener emails de auth.users
-  const usersWithEmails = await Promise.all(
-    (profiles || []).map(async (profile) => {
-      const { data: authUser } = await supabase.auth.admin.getUserById(profile.id)
-      return {
-        ...profile,
-        email: authUser?.user?.email || "N/A",
-      }
-    }),
-  )
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
       {/* Header */}
@@ -65,10 +54,10 @@ export default async function AdminUsersPage() {
         <Card>
           <CardHeader>
             <CardTitle>Usuarios Registrados</CardTitle>
-            <CardDescription>Total de usuarios: {usersWithEmails.length}</CardDescription>
+            <CardDescription>Total de usuarios: {profiles?.length || 0}</CardDescription>
           </CardHeader>
           <CardContent>
-            <UserTable users={usersWithEmails} />
+            <UserTable users={profiles || []} />
           </CardContent>
         </Card>
       </main>
