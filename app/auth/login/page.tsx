@@ -64,7 +64,13 @@ export default function LoginPage() {
       router.refresh()
     } catch (err: unknown) {
       console.error("[v0] Error en login:", err)
-      setError(err instanceof Error ? err.message : "Error al iniciar sesión")
+      const errorMessage = err instanceof Error ? err.message : "Error al iniciar sesión"
+
+      if (errorMessage.includes("Failed to fetch") || errorMessage.includes("fetch")) {
+        setError("connection")
+      } else {
+        setError(errorMessage)
+      }
     } finally {
       setIsLoading(false)
     }
@@ -107,12 +113,26 @@ export default function LoginPage() {
                 />
               </div>
 
-              {error && (
+              {error === "connection" ? (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <p className="font-semibold mb-2">No se puede conectar a Supabase</p>
+                    <p className="text-sm mb-3">
+                      Hay un problema de conectividad con tu proyecto de Supabase. Esto puede deberse a credenciales
+                      incorrectas o un proyecto pausado.
+                    </p>
+                    <Button asChild variant="outline" size="sm" className="w-full bg-transparent">
+                      <Link href="/auth/diagnostics">Ejecutar Diagnóstico</Link>
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              ) : error ? (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
-              )}
+              ) : null}
 
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
@@ -122,6 +142,13 @@ export default function LoginPage() {
                 ¿No tenés cuenta?{" "}
                 <Link href="/auth/sign-up" className="underline underline-offset-4 hover:text-primary">
                   Registrate
+                </Link>
+              </div>
+
+              <div className="text-center text-xs text-muted-foreground pt-2 border-t">
+                ¿Problemas para conectar?{" "}
+                <Link href="/auth/diagnostics" className="underline underline-offset-4 hover:text-primary">
+                  Ejecutar diagnóstico
                 </Link>
               </div>
             </form>
