@@ -36,6 +36,24 @@ export async function loginAction(formData: FormData) {
     if (error) {
       console.error("[v0] Error en signInWithPassword:", error)
 
+      if (
+        error.message.includes("not valid JSON") ||
+        error.message.includes("Unexpected token") ||
+        error.message.includes("Invalid re")
+      ) {
+        return {
+          error:
+            "⚠️ No se puede conectar con Supabase\n\n" +
+            "Tu proyecto de Supabase está PAUSADO o no disponible.\n\n" +
+            "Para resolver esto:\n" +
+            "1. Andá a https://supabase.com/dashboard\n" +
+            "2. Seleccioná tu proyecto\n" +
+            "3. Si está pausado, hacé clic en 'Restore project'\n" +
+            "4. Esperá unos minutos a que se reactive\n\n" +
+            "Los proyectos gratuitos de Supabase se pausan automáticamente después de 1 semana de inactividad.",
+        }
+      }
+
       if (error.message.includes("Invalid login credentials")) {
         return { error: "Email o contraseña incorrectos" }
       }
@@ -92,11 +110,14 @@ export async function loginAction(formData: FormData) {
       if (error.message.includes("not valid JSON") || error.message.includes("Unexpected token")) {
         return {
           error:
-            "Error de conexión con Supabase. Posibles causas:\n\n" +
-            "1. El proyecto de Supabase está PAUSADO (muy común en proyectos gratuitos)\n" +
-            "2. La URL o API key de Supabase son incorrectas\n" +
-            "3. El proyecto de Supabase fue eliminado\n\n" +
-            "Por favor verificá el estado de tu proyecto en https://supabase.com/dashboard",
+            "⚠️ No se puede conectar con Supabase\n\n" +
+            "Tu proyecto de Supabase está PAUSADO o no disponible.\n\n" +
+            "Para resolver esto:\n" +
+            "1. Andá a https://supabase.com/dashboard\n" +
+            "2. Seleccioná tu proyecto\n" +
+            "3. Si está pausado, hacé clic en 'Restore project'\n" +
+            "4. Esperá unos minutos a que se reactive\n\n" +
+            "Los proyectos gratuitos de Supabase se pausan automáticamente después de 1 semana de inactividad.",
         }
       }
 
