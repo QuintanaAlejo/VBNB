@@ -1,10 +1,10 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { loginAction } from "./actions"
+import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -13,25 +13,58 @@ import { Shield, AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function LoginPage() {
+  const router = useRouter()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
 
     try {
-      const formData = new FormData(e.currentTarget)
-      const result = await loginAction(formData)
+      const supabase = createClient()
 
-      if (result?.error) {
-        setError(result.error)
+      console.log("[v0] Intentando login con email:", email)
+
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+        options: {
+          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/dashboard`,
+        },
+      })
+
+      if (authError) {
+        console.error("[v0] Error en signInWithPassword:", authError)
+
+        // Manejar errores específicos
+        if (authError.message.includes("Invalid login credentials")) {
+          throw new Error("Email o contraseña incorrectos")
+        }
+
+        if (authError.message.includes("Email not confirmed")) {
+          throw new Error("Debes confirmar tu email antes de iniciar sesión. Revisa tu bandeja de entrada.")
+        }
+
+        // Error genérico
+        throw new Error(authError.message)
       }
-      // If successful, the server action will redirect
+
+      if (!data.user) {
+        throw new Error("No se pudo iniciar sesión")
+      }
+
+      console.log("[v0] Login exitoso, redirigiendo al dashboard...")
+
+      // Redirigir al dashboard
+      router.push("/dashboard")
+      router.refresh()
     } catch (err: unknown) {
-      console.error("[v0] Error inesperado en login:", err)
-      setError("Error inesperado. Por favor intentá nuevamente.")
+      console.error("[v0] Error en login:", err)
+      setError(err instanceof Error ? err.message : "Error al iniciar sesión")
     } finally {
       setIsLoading(false)
     }
@@ -54,17 +87,30 @@ export default function LoginPage() {
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" placeholder="tu@email.com" required />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="tu@email.com"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="password">Contraseña</Label>
-                <Input id="password" name="password" type="password" required />
+                <Input
+                  id="password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </div>
 
               {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription className="whitespace-pre-line">{error}</AlertDescription>
+                  <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
 
