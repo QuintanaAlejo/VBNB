@@ -40,13 +40,12 @@ export default function LoginPage() {
       if (authError) {
         console.error("[v0] Error en signInWithPassword:", authError)
 
-        // Manejar errores específicos
         if (authError.message.includes("Invalid login credentials")) {
-          throw new Error("Email o contraseña incorrectos")
+          throw new Error("invalid_credentials")
         }
 
         if (authError.message.includes("Email not confirmed")) {
-          throw new Error("Debes confirmar tu email antes de iniciar sesión. Revisa tu bandeja de entrada.")
+          throw new Error("email_not_confirmed")
         }
 
         // Error genérico
@@ -125,6 +124,30 @@ export default function LoginPage() {
                     <Button asChild variant="outline" size="sm" className="w-full bg-transparent">
                       <Link href="/auth/diagnostics">Ejecutar Diagnóstico</Link>
                     </Button>
+                  </AlertDescription>
+                </Alert>
+              ) : error === "invalid_credentials" ? (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <p className="font-semibold mb-2">Email o contraseña incorrectos</p>
+                    <p className="text-sm mb-3">
+                      Las credenciales ingresadas no son válidas. Si no tenés una cuenta, podés registrarte.
+                    </p>
+                    <Button asChild variant="outline" size="sm" className="w-full bg-transparent">
+                      <Link href="/auth/sign-up">Crear una cuenta</Link>
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              ) : error === "email_not_confirmed" ? (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <p className="font-semibold mb-2">Email no confirmado</p>
+                    <p className="text-sm">
+                      Debes confirmar tu email antes de iniciar sesión. Revisa tu bandeja de entrada y hace clic en el
+                      enlace de confirmación.
+                    </p>
                   </AlertDescription>
                 </Alert>
               ) : error ? (
