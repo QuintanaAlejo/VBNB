@@ -28,6 +28,15 @@ export default async function DashboardPage() {
 
   if (profileError) {
     console.error("[v0] Error al obtener perfil:", profileError)
+    // Si la tabla no existe (PGRST204 o mensaje específico), redirigir a setup
+    if (
+      profileError.code === "PGRST204" ||
+      profileError.message?.includes("Could not find the table") ||
+      profileError.message?.includes("schema cache")
+    ) {
+      redirect("/dashboard/setup")
+    }
+    // Si el perfil no existe pero la tabla sí, redirigir a editar perfil
     if (profileError.code === "PGRST116") {
       redirect("/dashboard/profile/edit")
     }
