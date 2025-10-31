@@ -13,13 +13,13 @@ export default async function SetupPage() {
     profiles: false,
     policies: false,
     claims: false,
-    create_profile_function: false,
   }
 
   // Verificar tabla profiles
   try {
     const { error } = await supabase.from("profiles").select("id").limit(1)
-    checks.profiles = !error || error.code !== "42P01"
+    // PGRST205 = tabla no encontrada, PGRST204 = sin resultados (tabla existe pero vacía)
+    checks.profiles = !error || error.code === "PGRST204"
   } catch (e) {
     checks.profiles = false
   }
@@ -27,7 +27,7 @@ export default async function SetupPage() {
   // Verificar tabla policies
   try {
     const { error } = await supabase.from("policies").select("id").limit(1)
-    checks.policies = !error || error.code !== "42P01"
+    checks.policies = !error || error.code === "PGRST204"
   } catch (e) {
     checks.policies = false
   }
@@ -35,7 +35,7 @@ export default async function SetupPage() {
   // Verificar tabla claims
   try {
     const { error } = await supabase.from("claims").select("id").limit(1)
-    checks.claims = !error || error.code !== "42P01"
+    checks.claims = !error || error.code === "PGRST204"
   } catch (e) {
     checks.claims = false
   }

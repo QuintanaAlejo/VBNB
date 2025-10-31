@@ -2,10 +2,11 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Shield, User, FileText, CreditCard, AlertCircle } from "lucide-react"
+import { Shield, User, FileText, CreditCard, AlertCircle, Settings } from "lucide-react"
 import Link from "next/link"
 import type { Profile } from "@/types/profile"
 import { signOut } from "@/app/auth/sign-out/actions"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -19,33 +20,18 @@ export default async function DashboardPage() {
     redirect("/auth/login")
   }
 
-  // Obtener perfil del usuario actual
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
     .single<Profile>()
 
-  if (profileError) {
-    console.error("[v0] Error al obtener perfil:", profileError)
-    // Si la tabla no existe (PGRST204 o mensaje específico), redirigir a setup
-    if (
-      profileError.code === "PGRST204" ||
+  // Detectar si hay problemas con la base de datos
+  const hasDatabaseIssue =
+    profileError &&
+    (profileError.code === "PGRST204" ||
       profileError.message?.includes("Could not find the table") ||
-      profileError.message?.includes("schema cache")
-    ) {
-      redirect("/dashboard/setup")
-    }
-    // Si el perfil no existe pero la tabla sí, redirigir a editar perfil
-    if (profileError.code === "PGRST116") {
-      redirect("/dashboard/profile/edit")
-    }
-  }
-
-  if (!profile) {
-    console.error("[v0] Perfil no encontrado para usuario:", user.id)
-    redirect("/dashboard/profile/edit")
-  }
+      profileError.message?.includes("schema cache"))
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
@@ -57,14 +43,22 @@ export default async function DashboardPage() {
             <h1 className="text-2xl font-bold">VBNB Seguros</h1>
           </div>
           <div className="flex items-center gap-4">
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/auth/diagnostics" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                <span className="hidden sm:inline">Config</span>
+              </Link>
+            </Button>
             {profile?.user_type === "administrador" && (
               <Button asChild variant="ghost" size="sm">
                 <Link href="/admin/users">Panel Admin</Link>
               </Button>
             )}
-            <span className="text-sm text-muted-foreground">
-              {profile?.first_name} {profile?.last_name}
-            </span>
+            {profile && (
+              <span className="text-sm text-muted-foreground">
+                {profile.first_name} {profile.last_name}
+              </span>
+            )}
             <form action={signOut}>
               <Button variant="outline" size="sm" type="submit">
                 Cerrar Sesión
@@ -76,8 +70,32 @@ export default async function DashboardPage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
+        {hasDatabaseIssue && (
+          <Alert className="mb-6 border-yellow-500/50 bg-yellow-500/10">
+            <AlertCircle className="h-4 w-4 text-yellow-500" />
+            <AlertDescription className="flex items-center justify-between">
+              <span>La base de datos necesita configuración. Ejecutá los scripts SQL para continuar.</span>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/dashboard/setup">Ir a Setup</Link>
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {!hasDatabaseIssue && !profile && (
+          <Alert className="mb-6 border-blue-500/50 bg-blue-500/10">
+            <User className="h-4 w-4 text-blue-500" />
+            <AlertDescription className="flex items-center justify-between">
+              <span>Completá tu perfil para acceder a todas las funcionalidades.</span>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/dashboard/profile/edit">Completar Perfil</Link>
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">Bienvenido, {profile?.first_name}</h2>
+          <h2 className="text-3xl font-bold mb-2">Bienvenido{profile?.first_name ? `, ${profile.first_name}` : ""}</h2>
           <p className="text-muted-foreground">Gestioná tus pólizas y siniestros desde tu panel de control</p>
         </div>
 
@@ -157,7 +175,7 @@ export default async function DashboardPage() {
               <dl className="grid md:grid-cols-2 gap-4 text-sm">
                 <div>
                   <dt className="font-medium text-muted-foreground">Email</dt>
-                  <dd>{user.email}</dd>
+                  <dd>{profile.email || user.email}</dd>
                 </div>
                 <div>
                   <dt className="font-medium text-muted-foreground">Tipo de Usuario</dt>
